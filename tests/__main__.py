@@ -2,7 +2,7 @@
 
 import sys
 from typing import List
-from nuclear import *
+import nuclear
 
 
 def main(*args: List[str]) -> int:

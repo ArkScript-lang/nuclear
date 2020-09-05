@@ -5,21 +5,8 @@ import argparse
 from typing import List
 import colorama
 
-from . import get
-from . import log
-
-
-def is_valid_package_name(name: str) -> bool:
-    """
-    Check if a given package name is under the form user/repo
-    """
-    # we need a single /
-    if name.count('/') != 1:
-        return False
-    # we need a valid username and repo name, not user/ or /repo
-    if not all(len(e) > 0 for e in name.split('/')):
-        return False
-    return True
+from .install import handle as install_handler
+from .remove import handle as remove_handler
 
 
 def main() -> int:
@@ -44,21 +31,11 @@ def main() -> int:
 
     args = parser.parse_args()
     print(args)
+
     if args.subparsers == 'install':
-        # check for validity
-        if not is_valid_package_name(args.package):
-            log.error(f"Provided package name is not valid: {args.package}")
-            return -1
-        # then check for existance on GitHub
-        user, repo = args.package.split('/')
-        if not get.check_user(user):
-            log.error(f"The GitHub user '{user}' doesn't exists")
-            return -1
-        if not get.check_repo(user, repo):
-            log.error(f"The wanted package '{repo}' from {user} couldn't be found on GitHub")
-            return -1
+        return install_handler(args)
     elif args.subparsers == 'remove':
-        pass
+        return remove_handler(args)
 
     return 0
 

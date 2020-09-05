@@ -1,11 +1,12 @@
 # coding: utf-8
 
-import os
 import sys
 import argparse
 from typing import List
+import colorama
 
 from . import get
+from . import log
 
 
 def is_valid_package_name(name: str) -> bool:
@@ -25,6 +26,8 @@ def main() -> int:
     """
     The main function of the program
     """
+    colorama.init()
+
     parser = argparse.ArgumentParser(prog='nuclear', add_help=True)
     subparsers = parser.add_subparsers(dest='subparsers')
     install = subparsers.add_parser(
@@ -44,15 +47,15 @@ def main() -> int:
     if args.subparsers == 'install':
         # check for validity
         if not is_valid_package_name(args.package):
-            print(f"Provided package name is not valid: {args.package}")
+            log.error(f"Provided package name is not valid: {args.package}")
             return -1
         # then check for existance on GitHub
         user, repo = args.package.split('/')
         if not get.check_user(user):
-            print(f"The GitHub user '{user}' doesn't exists")
+            log.error(f"The GitHub user '{user}' doesn't exists")
             return -1
         if not get.check_repo(user, repo):
-            print(f"The wanted package '{repo}' from {user} couldn't be found on GitHub")
+            log.error(f"The wanted package '{repo}' from {user} couldn't be found on GitHub")
             return -1
     elif args.subparsers == 'remove':
         pass

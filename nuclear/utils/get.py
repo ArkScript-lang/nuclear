@@ -1,16 +1,25 @@
 # coding: utf-8
 
 import requests
+import time
 
 from . import log
+from .errors import RatelimitError
 
 
-def get(url: str) -> requests.Request:
-    # could be beneficial to add an auth=('user', 'pass') argument
-    # for private repos / to avoid rate limit
-    # if we're using the user credentials, add them to a file and automatically
-    # add the file to the .gitignore file to avoid credentials leaking
-    return requests.get(url)
+def get(url: str, username: str='', token: str='') -> requests.Request:
+    # save credentials temporarily
+    if username and token:
+        get.username = username
+        get.token = token
+        return
+
+    r = requests.get(url, auth=(get.username, get.token))
+    if r.status_code == 403 and r.headers['X-Ratelimit-Remaining'] == '0':
+        reset = requests.get('https://api.github.com/rate_limit')
+        reset = int(reset.json()['rate']['reset']) if reset.status_code == 200 else None
+        raise RatelimitError(r.json()['message'], reset)
+    return r
 
 
 def check_user(username: str) -> bool:

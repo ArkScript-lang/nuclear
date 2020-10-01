@@ -49,16 +49,20 @@ GITHUB_ACCESS_TOKEN=<YOUR ACCESS TOKEN>
 
 * To see the help command
 
-    ```python
+    ```bash
     nuclear -h
     ```
 
-    ```python
+    ```bash
     nuclear --help
+    ```
+* Authentication ([using Github Access Token](https://github.com/settings/tokens))
+    ```bash
+     --token TOKEN     GitHub token, required if rate limiting is an issue
     ```
 
 * To Install an ArkScript Package from Github
-    ```python
+    ```bash
     nuclear install [-h] [-v VERSION] package
     ```
     - Positional Arguments
@@ -77,7 +81,7 @@ GITHUB_ACCESS_TOKEN=<YOUR ACCESS TOKEN>
         ```
 
 * To Remove an ArkScript Package
-    ```python
+    ```bash
     nuclear remove [-h] [-v VERSION] [-g GLOBALLY] package
     ```
     - Positional Arguments:

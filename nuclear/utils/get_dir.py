@@ -3,12 +3,17 @@
 import re
 from pathlib import Path
 
-def get_dir_name(url: str)-> str:
+def get_dir_name(url: str, version: str)-> str:
     """
     generate a directory
     """
     l = url.split("/")
-    dir_string =  "/".join(l[2:len(l)-1])
+    
+    if version is not None:
+        dir_string =  "/".join(l[2:len(l)-2])+f"/{version}"
+    else:
+        dir_string =  "/".join(l[2:len(l)-1])
+
     home = str(Path.home())
     return home+"/arkscript-pkgs/modules/"+dir_string
 

@@ -38,13 +38,13 @@ def handle(args: argparse.Namespace) -> int:
     if tar_addr is not None:
         # download
         # print(tar_addr)
-        # print(get_dir.get_dir_name(tar_addr))
+        # print(get_dir.get_dir_name(tar_addr,version=args.version))
         r = requests.get(tar_addr)
         # get filename from content-dispoisiton
         filename = get_dir.get_filename(r.headers.get('content-disposition'))
         try:  
-            makedirs(get_dir.get_dir_name(tar_addr))
-            with open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb') as f:
+            makedirs(get_dir.get_dir_name(tar_addr,version=args.version))
+            with open(get_dir.get_dir_name(tar_addr,version=args.version)+"/"+filename,'xb',) as f:
                 f.write(r.content)
         except Exception as e:
             log.error(f"{e}")

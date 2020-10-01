@@ -37,11 +37,10 @@ def handle(args: argparse.Namespace) -> int:
     # error handling for when tar_addr is None has already been done
     if tar_addr is not None:
         # download
-        # print(tar_addr)
-        # print(get_dir.get_dir_name(tar_addr,version=args.version))
         r = requests.get(tar_addr)
-        # get filename from content-dispoisiton
+        # get filename from content-dispositon
         filename = get_dir.get_filename(r.headers.get('content-disposition'))
+        #try making the tarball
         try:  
             makedirs(get_dir.get_dir_name(tar_addr,version=args.version))
             with open(get_dir.get_dir_name(tar_addr,version=args.version)+"/"+filename,'xb',) as f:

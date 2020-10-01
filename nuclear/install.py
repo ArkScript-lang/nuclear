@@ -41,7 +41,8 @@ def handle(args: argparse.Namespace) -> int:
         filename = get_dir.get_filename(r.headers.get('content-disposition'))
         try:  
             makedirs(get_dir.get_dir_name(tar_addr))
-            open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb').write(r.content)
+            with open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb') as f:
+                f.write(r.content)
         except Exception as e:
             log.error(f"{e}")
             print("Unable to download module")

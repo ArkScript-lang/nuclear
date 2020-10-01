@@ -1,10 +1,15 @@
 # coding: utf-8
 
 import argparse
+import requests
+from os import makedirs
 
-from .utils import get
-from .utils import log
-from .utils import package
+from .utils import (
+    get,
+    log,
+    package,
+    get_dir,
+)
 
 
 def handle(args: argparse.Namespace) -> int:
@@ -31,6 +36,13 @@ def handle(args: argparse.Namespace) -> int:
     # error handling for when tar_addr is None has already been done
     if tar_addr is not None:
         # download
-        pass
-
+        r = requests.get(tar_addr)
+        # get filename from content-dispoisiton
+        filename = get_dir.get_filename(r.headers.get('content-disposition'))
+        try:  
+            makedirs(get_dir.get_dir_name(tar_addr))
+            open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb').write(r.content)
+        except Exception as e:
+            log.error(f"{e}")
+            print("Unable to download module")
     return 0

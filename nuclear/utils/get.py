@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import requests
+from decouple import config
 
 from . import log
 
@@ -10,7 +11,7 @@ def get(url: str) -> requests.Request:
     # for private repos / to avoid rate limit
     # if we're using the user credentials, add them to a file and automatically
     # add the file to the .gitignore file to avoid credentials leaking
-    return requests.get(url)
+    return requests.get(url, headers={"Authorization":f"token {config('GITHUB_ACCESS_TOKEN')}"})
 
 
 def check_user(username: str) -> bool:

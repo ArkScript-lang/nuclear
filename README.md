@@ -35,7 +35,7 @@ An ArkScript Package Manager
 * To increase the rate limit, generate a [personal access token](https://github.com/settings/tokens)
 * add token to nuclear
 ```bash
-nuclear --token <YOUR TOKEN HERE>
+nuclear --login --token <YOUR TOKEN HERE>
 ```
 
 ## Commands

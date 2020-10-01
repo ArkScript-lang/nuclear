@@ -37,14 +37,16 @@ def handle(args: argparse.Namespace) -> int:
     # error handling for when tar_addr is None has already been done
     if tar_addr is not None:
         # download
-        r = requests.get(tar_addr)
-        # get filename from content-dispoisiton
-        filename = get_dir.get_filename(r.headers.get('content-disposition'))
-        try:  
-            makedirs(get_dir.get_dir_name(tar_addr))
-            with open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb') as f:
-                f.write(r.content)
-        except Exception as e:
-            log.error(f"{e}")
-            print("Unable to download module")
+        print(tar_addr)
+        print(get_dir.get_dir_name(tar_addr))
+        # r = requests.get(tar_addr)
+        # # get filename from content-dispoisiton
+        # filename = get_dir.get_filename(r.headers.get('content-disposition'))
+        # try:  
+        #     makedirs(get_dir.get_dir_name(tar_addr))
+        #     with open(get_dir.get_dir_name(tar_addr)+"/"+filename,'xb') as f:
+        #         f.write(r.content)
+        # except Exception as e:
+        #     log.error(f"{e}")
+        #     print("Unable to download module")
     return 0

@@ -33,7 +33,7 @@ def main() -> int:
             ' created if it doesn\'t exist) to avoid credentials leaking.'
 
     )
-    # auth_group.add_argument('--login', help='GitHub login, optional')
+    auth_group.add_argument('--login', help='GitHub login, optional')
     auth_group.add_argument('--token', help='GitHub token, required if rate limiting is an issue')
     subparsers = parser.add_subparsers(dest='subparsers')
 
@@ -64,37 +64,36 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # if args.login:
-
-    if not args.token:
-        log.error('GitHub login provided but token wasn\'t given')
-        return -1
-    else:
-        # save credentials
-        with open('.env', 'w') as f:
-            f.write(f"GITHUB_ACCESS_TOKEN={args.token}")
-        # NOT REQUIRED NOW, SINCE GET IS CONFIGURED
-        # TO READ DRECTLY FROM ENV FILE IF TOKEN EXISTS
-        # -------------------------------------------
-        # register into get
-        # get.get('', args.login, args.token)
-        # check for .gitignore and add our file to it
-        # in order to prevent token leaking
-        # --------------------------------------------
-        if os.path.exists('.gitignore'):
-            with open('.gitignore', 'a') as file:
-                file.write('.env')
-        elif os.path.exists('.git'):
-            with open('.gitignore', 'w') as file:
-                file.write('.env')
-    # REMOVED BECAUSE ARGS.LOGIN NOT NEEDED
-    # -----------------------------------------------
-    # else:
-    #     # check for .nuclear.github file
-    #     if os.path.exists('.nuclear.github'):
-    #         with open('.nuclear.github') as file:
-    #             get.get('', *file.readlines())
-    # -----------------------------------------------
+    if args.login:
+        if not args.token:
+            log.error('GitHub login provided but token wasn\'t given')
+            return -1
+        else:
+            # save credentials
+            with open('.env', 'w') as f:
+                f.write(f"GITHUB_ACCESS_TOKEN={args.token}")
+            # NOT REQUIRED NOW, SINCE GET IS CONFIGURED
+            # TO READ DRECTLY FROM ENV FILE IF TOKEN EXISTS
+            # -------------------------------------------
+            # register into get
+            # get.get('', args.login, args.token)
+            # check for .gitignore and add our file to it
+            # in order to prevent token leaking
+            # --------------------------------------------
+            if os.path.exists('.gitignore'):
+                with open('.gitignore', 'a') as file:
+                    file.write('.env')
+            elif os.path.exists('.git'):
+                with open('.gitignore', 'w') as file:
+                    file.write('.env')
+        # REMOVED BECAUSE ARGS.LOGIN NOT NEEDED
+        # -----------------------------------------------
+        # else:
+        #     # check for .nuclear.github file
+        #     if os.path.exists('.nuclear.github'):
+        #         with open('.nuclear.github') as file:
+        #             get.get('', *file.readlines())
+        # -----------------------------------------------
 
     try:
         if args.subparsers == 'install':

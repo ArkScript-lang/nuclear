@@ -1,12 +1,17 @@
 # coding: utf-8
 
+import os
 import sys
 import argparse
 from typing import List
 import colorama
+import time
 
 from .install import handle as install_handler
 from .remove import handle as remove_handler
+from .utils.errors import RatelimitError
+from .utils import log
+from .utils import get
 
 
 def main() -> int:
@@ -16,6 +21,20 @@ def main() -> int:
     colorama.init()
 
     parser = argparse.ArgumentParser(prog='nuclear', add_help=True)
+    # auth_group = parser.add_argument_group(
+    #     title='Authentication',
+    #     description='This section is optional but giving GitHub login and token can help' + \
+    #         'to raise the rate limit errors (60 request/hour at most)\n' +
+    #         'Your credentials (login and token) will be saved to the disk in a' + \
+    #         '.nuclear.github file.\n' + \
+    #         'If you are in a git repo (.git is present in the current' + \
+    #         'folder, or .gitignore is present in the current folder),' + \
+    #         'then it will automatically be added to the file (.gitignore will be' + \
+    #         'created if it doesn\'t exist) to avoid credentials leaking.'
+
+    # )
+    # auth_group.add_argument('--login', help='GitHub login, optional')
+    # auth_group.add_argument('--token', help='GitHub token, required if login is given')
     subparsers = parser.add_subparsers(dest='subparsers')
 
     # install package [-v version]
@@ -45,10 +64,40 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    if args.subparsers == 'install':
-        return install_handler(args)
-    elif args.subparsers == 'remove':
-        return remove_handler(args)
+    if args.login:
+        if not args.token:
+            log.error('GitHub login provided but token wasn\'t given')
+            return -1
+        else:
+            # save credentials
+            with open('.nuclear.github', 'w') as f:
+                f.write(f"{args.login}\n{args.token}")
+            # register into get
+            get.get('', args.login, args.token)
+            # check for .gitignore and add our file to it
+            # in order to prevent token leaking
+            if os.path.exists('.gitignore'):
+                with open('.gitignore', 'a') as file:
+                    file.write('.nuclear.github')
+            elif os.path.exists('.git'):
+                with open('.gitignore', 'w') as file:
+                    file.write('.nuclear.github')
+    else:
+        # check for .nuclear.github file
+        if os.path.exists('.nuclear.github'):
+            with open('.nuclear.github') as file:
+                get.get('', *file.readlines())
+
+    try:
+        if args.subparsers == 'install':
+            return install_handler(args)
+        elif args.subparsers == 'remove':
+            return remove_handler(args)
+    except RatelimitError as rle:
+        log.error(rle.message)
+        if rle.reset is not None:
+            reset = time.strftime("%H:%M:%S %D", time.localtime(rle.reset))
+            log.info(f"Will reset at {reset}")
 
     return 0
 

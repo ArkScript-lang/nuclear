@@ -29,6 +29,22 @@ An ArkScript Package Manager
     pip3 install -r requirements.txt
     ```
 
+## Troubleshooting
+
+* If you're facing an issue where you cannot download any more tarballs, you might have been rate limited by GitHub
+* To increase the rate limit, generate a [personal access token](https://github.com/settings/tokens)
+* Create a .env file
+```bash
+touch .env
+nano .env
+```
+* insert access token in the .env file
+```bash
+GITHUB_ACCESS_TOKEN=<YOUR ACCESS TOKEN>
+```
+* save and exit
+* Checkout [.env.sample](./.env.sample) to see how the .env file should look like
+
 ## Commands
 
 * To see the help command

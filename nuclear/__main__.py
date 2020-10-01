@@ -22,8 +22,8 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(prog='nuclear', add_help=True)
     auth_group = parser.add_argument_group(
-        'Authentification',
-        help='This section is optional but giving GitHub login and token can help' + \
+        title='Authentification',
+        description='This section is optional but giving GitHub login and token can help' + \
             'to raise the rate limit errors (60 request/hour at most)\n' +
             'Your credentials (login and token) will be saved to the disk in a' + \
             '.nuclear.github file.\n' + \
@@ -34,7 +34,7 @@ def main() -> int:
 
     )
     auth_group.add_argument('--login', help='GitHub login, optional')
-    auth_group.add_argument('--token', help='GitHub token, requested if login is given')
+    auth_group.add_argument('--token', help='GitHub token, required if login is given')
     subparsers = parser.add_subparsers(dest='subparsers')
 
     # install package [-v version]

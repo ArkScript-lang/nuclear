@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import requests
+from decouple import config
 import time
 
 from . import log
@@ -9,12 +10,16 @@ from .errors import RatelimitError
 
 def get(url: str, username: str='', token: str='') -> requests.Request:
     # save credentials temporarily
-    if username and token:
-        get.username = username
-        get.token = token
-        return
+    # commented out for a while
+    # if username or token:
+    #     get.username = username
+    #     get.token = token
+    #     return
+    if token:
+        r = requests.get(url, headers={"Authorization":f"token {token}"})
+    else:
+        r = requests.get(url)
 
-    r = requests.get(url, auth=(get.username, get.token))
     if r.status_code == 403 and r.headers['X-Ratelimit-Remaining'] == '0':
         reset = requests.get('https://api.github.com/rate_limit')
         reset = int(reset.json()['rate']['reset']) if reset.status_code == 200 else None

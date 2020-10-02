@@ -29,20 +29,33 @@ An ArkScript Package Manager
     pip3 install -r requirements.txt
     ```
 
+## Troubleshooting
+
+* If you're facing an issue where you cannot download any more tarballs, you might have been rate limited by GitHub
+* To increase the rate limit, generate a [personal access token](https://github.com/settings/tokens)
+* add token to nuclear
+```bash
+nuclear --login --token <YOUR TOKEN HERE>
+```
+
 ## Commands
 
 * To see the help command
 
-    ```python
+    ```bash
     nuclear -h
     ```
 
-    ```python
+    ```bash
     nuclear --help
+    ```
+* Authentication ([using Github Access Token](https://github.com/settings/tokens))
+    ```bash
+     --token TOKEN     GitHub token, required if rate limiting is an issue
     ```
 
 * To Install an ArkScript Package from Github
-    ```python
+    ```bash
     nuclear install [-h] [-v VERSION] package
     ```
     - Positional Arguments
@@ -61,7 +74,7 @@ An ArkScript Package Manager
         ```
 
 * To Remove an ArkScript Package
-    ```python
+    ```bash
     nuclear remove [-h] [-v VERSION] [-g GLOBALLY] package
     ```
     - Positional Arguments:

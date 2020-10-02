@@ -2,7 +2,6 @@
 
 import requests
 from decouple import config
-import time
 
 from . import log
 from .errors import RatelimitError
@@ -15,6 +14,8 @@ def get(url: str, username: str='', token: str='') -> requests.Request:
     #     get.username = username
     #     get.token = token
     #     return
+    if not token:
+        token = config("GITHUB_ACCESS_TOKEN") # try to load from .env if possible
     if token:
         r = requests.get(url, headers={"Authorization":f"token {token}"})
     else:
@@ -42,8 +43,20 @@ def check_repo(username: str, repo: str) -> bool:
     r = get(f"https://api.github.com/repos/{username}/{repo}")
     return r.status_code == 200
 
+def get_latest_commit(username: str, repo: str) -> None or str:
+    """
+    Returns latest commit from a package
+    """
+    if version:
+        return version
+    r = get(f"https://api.github.com/repos/{username}/{repo}/commits/master")
+    if r.status_code != 200:
+        log.error(f"Couldn't retrieve latest commit from {username}/{repo}")
+        return None
+    return r.json()["sha"]
 
-def search_tar(username: str, repo: str, version: str=None) -> None or str:
+
+def search_tar(username: str, repo: str, version: str=None) -> list:
     """
     Search a specific release from a given GitHub repository
     If version is None, the latest release will be downloaded
@@ -54,7 +67,7 @@ def search_tar(username: str, repo: str, version: str=None) -> None or str:
     r = get(f"https://api.github.com/repos/{username}/{repo}/releases")
     if r.status_code != 200:
         log.error(f"Couldn't retrieve releases list from {username}/{repo}")
-        return None
+        return None, None
     releases = r.json()
 
     # no specified version, try to grab the latest version
@@ -63,10 +76,10 @@ def search_tar(username: str, repo: str, version: str=None) -> None or str:
         # but add a warning
         if len(releases) == 0:
             log.warn(f"Downloading the latest tarball from {username}/{repo} since no release were available")
-            return f"https://api.github.com/repos/{username}/{repo}/tarball"
+            return f"https://api.github.com/repos/{username}/{repo}/tarball", get_latest_commit(username, repo)
         else:
             log.info(f"Downloading version {releases[0]['tag_name']} from {username}/{repo}")
-            return releases[0]['tarball_url']
+            return releases[0]['tarball_url'], releases[0]['tag_name']
     # the given version isn't known to github
     elif not any(e['tag_name'] == version for e in releases):
         log.error(f"Requested version {version} for {username}/{repo} can not be found, aborting")
@@ -78,11 +91,11 @@ def search_tar(username: str, repo: str, version: str=None) -> None or str:
                 "There are no available releases, try without specifying " + \
                 "one to download the package at its current commit stage"
             )
-        return None
+        return None, None
     else:
         # search for the wanted release and return its tarbar url
         # it *must* exists since the previous elif has failed if
         # we're here.
         for rel in releases:
             if rel['tag_name'] == version:
-                return rel['tarball_url']
+                return rel['tarball_url'], rel['tag_name']

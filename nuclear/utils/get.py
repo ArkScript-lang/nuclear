@@ -19,6 +19,7 @@ def get(url: str, username: str='', token: str='') -> requests.Request:
         r = requests.get(url, headers={"Authorization":f"token {token}"})
     else:
         r = requests.get(url)
+
     if r.status_code == 403 and r.headers['X-Ratelimit-Remaining'] == '0':
         reset = requests.get('https://api.github.com/rate_limit')
         reset = int(reset.json()['rate']['reset']) if reset.status_code == 200 else None

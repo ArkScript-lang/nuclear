@@ -6,8 +6,26 @@ from decouple import config
 from . import log
 from .errors import RatelimitError
 
+LATEST_COMMIT_QUERY = """
+{{
+  repository(name: "{repo}", owner: "{username}") {{
+    defaultBranchRef {{
+      target {{
+        ... on Commit {{
+          history(first: 1) {{
+            nodes {{
+              oid
+            }}
+          }}
+        }}
+      }}
+    }}
+  }}
+}}
+"""
 
-def get(url: str, username: str='', token: str='') -> requests.Request:
+
+def request(method: str, url: str, username: str='', token: str='', *args, **kwargs) -> requests.Request:
     # save credentials temporarily
     # commented out for a while
     # if username or token:
@@ -15,11 +33,11 @@ def get(url: str, username: str='', token: str='') -> requests.Request:
     #     get.token = token
     #     return
     if not token:
-        token = config("GITHUB_ACCESS_TOKEN") # try to load from .env if possible
+        token = config("GITHUB_ACCESS_TOKEN", default="") # try to load from .env if possible
+    headers = {}
     if token:
-        r = requests.get(url, headers={"Authorization":f"token {token}"})
-    else:
-        r = requests.get(url)
+        headers = {"Authorization": f"token {token}"}
+    r = requests.request(method, url, headers=headers, *args, **kwargs)
 
     if r.status_code == 403 and r.headers['X-Ratelimit-Remaining'] == '0':
         reset = requests.get('https://api.github.com/rate_limit')
@@ -27,6 +45,11 @@ def get(url: str, username: str='', token: str='') -> requests.Request:
         raise RatelimitError(r.json()['message'], reset)
     return r
 
+def get(url: str, username: str='', token: str='', *args, **kwargs) -> requests.Request:
+    return request("get", url, username, token, *args, **kwargs)
+
+def post(url: str, username: str='', token: str='', *args, **kwargs) -> requests.Request:
+    return request("post", url, username, token, *args, **kwargs)
 
 def check_user(username: str) -> bool:
     """
@@ -43,17 +66,30 @@ def check_repo(username: str, repo: str) -> bool:
     r = get(f"https://api.github.com/repos/{username}/{repo}")
     return r.status_code == 200
 
+def get_latest_commit_restapi(username: str, repo: str) -> None or str:
+    r = get(f"https://api.github.com/repos/{username}/{repo}")
+    if r.status_code != 200:
+        log.error(f"Couldn't retrieve default branch information from {username}/{repo}")
+        return None
+    default_branch = r.json()["default_branch"]
+    r = get(f"https://api.github.com/repos/{username}/{repo}/commits/{default_branch}")
+    if r.status_code != 200:
+        log.error(f"Couldn't retrieve latest commit from {username}/{repo} using two available methods. Stopping")
+        return None
+    return r.json()["sha"]
+
 def get_latest_commit(username: str, repo: str) -> None or str:
     """
     Returns latest commit from a package
     """
-    if version:
-        return version
-    r = get(f"https://api.github.com/repos/{username}/{repo}/commits/master")
+    r = post("https://api.github.com/graphql", json={"query": LATEST_COMMIT_QUERY.format(username=username, repo=repo)})
+    if r.status_code == 401: # use two requests method
+        log.warn("No github token provided. Will send two http requests instead of one.")
+        return get_latest_commit_restapi(username, repo)
     if r.status_code != 200:
         log.error(f"Couldn't retrieve latest commit from {username}/{repo}")
         return None
-    return r.json()["sha"]
+    return r.json()["data"]["repository"]["defaultBranchRef"]["target"]["history"]["nodes"][0]["oid"]
 
 
 def search_tar(username: str, repo: str, version: str=None) -> list:
@@ -76,7 +112,11 @@ def search_tar(username: str, repo: str, version: str=None) -> list:
         # but add a warning
         if len(releases) == 0:
             log.warn(f"Downloading the latest tarball from {username}/{repo} since no release were available")
-            return f"https://api.github.com/repos/{username}/{repo}/tarball", get_latest_commit(username, repo)
+            latest_commit = get_latest_commit(username, repo)
+            if latest_commit:
+                return f"https://api.github.com/repos/{username}/{repo}/tarball", latest_commit
+            else:
+                return None, None
         else:
             log.info(f"Downloading version {releases[0]['tag_name']} from {username}/{repo}")
             return releases[0]['tarball_url'], releases[0]['tag_name']

@@ -80,12 +80,12 @@ def main() -> int:
             # check for .gitignore and add our file to it
             # in order to prevent token leaking
             # --------------------------------------------
-            if os.path.exists('.gitignore'):
-                with open('.gitignore', 'a') as file:
-                    file.write('.env')
-            elif os.path.exists('.git'):
-                with open('.gitignore', 'w') as file:
-                    file.write('.env')
+            if os.path.exists('.gitignore') or os.path.exists('.git'):
+                with open('.gitignore', 'a+') as file:
+                    file.seek(0) # to read actual contents first
+                    contents = file.readlines()
+                    if ".env\n" not in contents and ".env" not in contents:
+                        file.write('.env')
         # REMOVED BECAUSE ARGS.LOGIN NOT NEEDED
         # -----------------------------------------------
         # else:

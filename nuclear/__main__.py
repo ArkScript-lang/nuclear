@@ -41,7 +41,7 @@ def main() -> int:
     install = subparsers.add_parser(
         'install', help='Install an ArkScript package from GitHub'
     )
-    install.add_argument('--package', help='Should look like this: user/repo')
+    install.add_argument('package', nargs='?',help='Should look like this: user/repo')
     install.add_argument(
         '-v', '--version',
         help='Specify a version for the package'

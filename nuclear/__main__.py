@@ -23,25 +23,27 @@ def main() -> int:
     parser = argparse.ArgumentParser(prog='nuclear', add_help=True)
     auth_group = parser.add_argument_group(
         title='Authentication',
-        description='This section is optional but giving GitHub personal token can help' + \
-            ' to raise the rate limit errors (60 request/hour at most)\n' +
-            ' Your credentials (personal access token) will be saved to the disk in a' + \
-            ' .env file.\n' + \
-            ' If you are in a git repo (.git is present in the current' + \
-            ' folder, or .gitignore is present in the current folder),' + \
-            ' then it will automatically be added to the file (.gitignore will be' + \
-            ' created if it doesn\'t exist) to avoid credentials leaking.'
+        description='This section is optional but giving GitHub personal token can help' +
+        ' to raise the rate limit errors (60 request/hour at most)\n' +
+        ' Your credentials (personal access token) will be saved to the disk in a' +
+        ' .env file.\n' +
+        ' If you are in a git repo (.git is present in the current' +
+        ' folder, or .gitignore is present in the current folder),' +
+        ' then it will automatically be added to the file (.gitignore will be' +
+        ' created if it doesn\'t exist) to avoid credentials leaking.'
 
     )
     auth_group.add_argument('--login', help='GitHub login, optional')
-    auth_group.add_argument('--token', help='GitHub token, required if rate limiting is an issue')
+    auth_group.add_argument(
+        '--token', help='GitHub token, required if rate limiting is an issue')
     subparsers = parser.add_subparsers(dest='subparsers')
 
     # install package [-v version]
     install = subparsers.add_parser(
         'install', help='Install an ArkScript package from GitHub'
     )
-    install.add_argument('package', help='Should look like this: user/repo')
+    install.add_argument('package', nargs='?',
+                         help='Should look like this: user/repo')
     install.add_argument(
         '-v', '--version',
         help='Specify a version for the package'
@@ -58,8 +60,8 @@ def main() -> int:
     )
     remove.add_argument(
         '-g', '--globally',
-        help='Remove a package from the local repositories. If not specified' + \
-            'remove a package from the current project packages list.'
+        help='Remove a package from the local repositories. If not specified' +
+        'remove a package from the current project packages list.'
     )
 
     args = parser.parse_args()
@@ -82,7 +84,7 @@ def main() -> int:
             # --------------------------------------------
             if os.path.exists('.gitignore') or os.path.exists('.git'):
                 with open('.gitignore', 'a+') as file:
-                    file.seek(0) # to read actual contents first
+                    file.seek(0)  # to read actual contents first
                     contents = file.readlines()
                     if ".env\n" not in contents and ".env" not in contents:
                         file.write('.env')

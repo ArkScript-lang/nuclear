@@ -1,7 +1,7 @@
 LOCKFILE_VERSION = "1.0.0"
 LOCKFILE = "nuclear.lock"
 
-def parse_lockfile() -> list:
+def parse_lockfile() -> dict:
     packages = {}
     try:
         with open(LOCKFILE) as f:
